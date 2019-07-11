@@ -1,96 +1,107 @@
 import React, { Dispatch } from "react";
-import mo from "memoize-one";
 import * as params from "src/constants";
+const { kj, vf, w, k0, numLanes, total } = params,
+  min = Math.min,
+  max = Math.max;
 
-const vs = (() => {
-  let { sj, w, vf } = params;
-  return (s: number) => Math.max(Math.min(vf, (s / sj - 1) * w), 0);
-})();
+export const getRange = (v: number) => [...Array(v).keys()];
 
-type Entry = [number, number];
+type Lane = {
+  cars: number[];
+  v: number;
+  s: number;
+  k: number;
+};
+
+export enum VKType {
+  TRIANGLE = "TRIANGLE",
+  GREENSHIELDS = "GREENSHIELDS",
+  DRAKE = "DRAKE"
+}
+
+export type State = {
+  readonly play: boolean;
+  readonly lanes: Lane[];
+  readonly vk: VKType;
+};
+
+export const kRange: number[] = getRange(numLanes).map(
+  (d: number, i: number) => ((i + 1) / numLanes) * kj
+);
+
+export const vkMap: { [keys in VKType]: (k: number) => number } = {
+  TRIANGLE: k => max(min(vf, w * (kj / k - 1)), 0),
+  GREENSHIELDS: k => max(0, vf * (1 - k / kj)),
+  DRAKE: k => max(0, vf * Math.exp(-k / kj))
+};
+
+const setLanes = (vk: VKType): Lane[] =>
+  kRange.map(k => {
+    // let r = Math.random() * params.carLength/2;
+    let r = 0;
+    return {
+      k,
+      s: 1 / k,
+      v: vkMap[vk](k),
+      cars: getRange(Math.round(total * k)).map(d => r + d / k)
+    };
+  });
 
 export const initialState = {
   play: false,
-  cars: [] as number[],
-  time: 0,
-  numCars: 0,
-  history: [] as Entry[][]
+  lanes: setLanes(VKType.TRIANGLE),
+  vk: VKType.TRIANGLE
 };
-export const getGreen = mo(
-  (time: number, cycle: number) => time % cycle < cycle / 2
-);
-export type State = typeof initialState;
-type ActionTypes =
+
+export enum ActionTypes {
+  TICK = "TICK",
+  SET_VK = "SET_VK",
+  SET_PLAY = "SET_PLAY"
+}
+
+type Action =
   | {
-      type: "TICK";
+      type: ActionTypes.TICK;
       payload: number;
     }
   | {
-      type: "ADD";
+      type: ActionTypes.SET_VK;
+      payload: VKType;
     }
   | {
-      type: "SET_V0";
-      payload: number;
-    }
-  | {
-      type: "RESTART";
-    }
-  | {
-      type: "RESET";
-    }
-  | {
-      type: "SET_PLAY";
+      type: ActionTypes.SET_PLAY;
       payload: boolean;
     };
-export const reducer = (state: State, action: ActionTypes): State => {
+
+export const reducer: React.Reducer<State, Action> = (
+  state,
+  action: { type: ActionTypes; payload?: any }
+) => {
   switch (action.type) {
-    case "TICK":
-      let δ = action.payload,
-        green = getGreen(state.time, params.cycle),
-        cars = state.cars
-          .map((x, i, arr) => {
-            let nextX = i === 0 ? Infinity : arr[i - 1];
-            if (!green && x <= params.light)
-              nextX = Math.min(nextX, params.light + params.sj);
-            return Math.min(nextX, x + vs(nextX - x) * δ);
-          })
-          .filter(d => d < params.total);
-      let z = state.numCars - cars.length;
-      let t = state.time;
-      let history: Entry[][] = state.history.map((d, i) => {
-        if (i < z) return d;
-        return [...d, [t, cars[i - z]]];
-      });
+    case ActionTypes.TICK:
+      let δ = action.payload;
       return {
         ...state,
-        history,
-        cars,
-        time: state.time + δ
+        lanes: state.lanes.map((l: Lane) => {
+          let cars = l.cars.map(c => c + δ * l.v);
+          if (cars[0] > l.s) cars.unshift(cars[0] - l.s);
+          if (cars[cars.length - 1] > total) cars.pop();
+          return {
+            ...l,
+            cars
+          };
+        })
       };
-    case "ADD":
-      let newCar = Math.min(
-        -params.vf / params.Q + state.cars[state.cars.length - 1] - 1 || -20,
-        -20
-      );
-      let entry: Entry = [state.time, newCar];
+    case ActionTypes.SET_VK:
       return {
         ...state,
-        numCars: state.numCars + 1,
-        history: [...state.history, [entry]],
-        cars: [...state.cars, newCar]
+        vk: action.payload,
+        lanes: setLanes(action.payload)
       };
-    case "SET_PLAY":
+    case ActionTypes.SET_PLAY:
       return {
         ...state,
         play: action.payload
-      };
-    case "RESET":
-      return {
-        ...state,
-        time: 0,
-        history: [],
-        numCars: 0,
-        cars: [] as number[]
       };
     default:
       return state;
@@ -98,27 +109,5 @@ export const reducer = (state: State, action: ActionTypes): State => {
 };
 export const AppContext = React.createContext<{
   state: State;
-  dispatch?: Dispatch<ActionTypes>;
+  dispatch?: Dispatch<Action>;
 }>({ state: initialState, dispatch: null });
-
-export const getStates = (time: number) => {
-  let { vf, cycle, q0, total, light, sj, carLength } = params;
-  if (time < cycle / 2)
-    return [["U", Math.min(time * vf, total)], ["E", total]];
-  if (time % cycle <= cycle / 2)
-    return [
-      ["U", light - (time % cycle) * q0 * sj - carLength],
-      ["J", light],
-      ["E", Math.min(light + (time % cycle) * vf, total)],
-      ["U", total]
-    ];
-  if (time % cycle > cycle / 2)
-    return [
-      ["U", light - ((time % cycle) - cycle / 2) * q0 * sj - carLength],
-      ["J", light],
-      ["E", Math.min(((time % cycle) - cycle / 2) * vf + light, total)],
-      ["U", total]
-    ];
-  // if()
-  // if()
-};

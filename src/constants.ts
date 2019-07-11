@@ -1,14 +1,15 @@
-export const total = 160;
-export const light = total * 0.8;
+export const total = 140;
 export const vf = (80 * 1000) / 3600; /* 60 kph to m/s */
-export const sj = 4;
+export const GR = (1 + Math.sqrt(5)) / 2;
+export const carLength = 2.5;
+export const carWidth = carLength / 2.5;
+export const roadWidth = carWidth * GR*2.5;
+export const sj = carLength*GR;
 export const kj = 1 / sj;
-export const k0 = kj / 3.5;
+export const k0 = kj / 3;
 export const q0 = vf * k0;
 export const w = q0 / (kj - k0);
-export const carLength = 3;
-export const carHeight = 2;
-export const roadWidth = 10;
-export const delta = 0.40;
-export const Q = q0 * 0.492;
-export const cycle = 40;
+console.log(carWidth);
+console.log(roadWidth)
+export const delta = 0.5;
+export const numLanes = 20;
