@@ -1,6 +1,7 @@
 const { resolve } = require("path");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 module.exports = {
   context: __dirname,
@@ -10,7 +11,8 @@ module.exports = {
   output: {
     path: resolve(__dirname, "docs"),
     // publicPath: "docs/",
-    filename: "[name].js"
+    // filename: "[name].js"
+    filename: "[name].[contenthash].js"
   },
   mode: "production",
   optimization: {
@@ -20,13 +22,14 @@ module.exports = {
     runtimeChunk: true
   },
   plugins: [
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: resolve(__dirname, "src", "index.html"),
       filename: resolve(__dirname, "docs", "index.html")
-    }),
-    new webpack.DefinePlugin({
-      __NODE_ENV__: JSON.stringify("production")
     })
+    // new webpack.DefinePlugin({
+    //   __NODE_ENV__: JSON.stringify("production")
+    // }),
   ],
   module: {
     rules: [
