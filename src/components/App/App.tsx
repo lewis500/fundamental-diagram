@@ -1,4 +1,9 @@
-import React, { FunctionComponent, useContext, useReducer } from "react";
+import React, {
+  FunctionComponent,
+  useContext,
+  useReducer,
+  useCallback
+} from "react";
 import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import { useTimer } from "src/useTimerHook";
@@ -7,10 +12,53 @@ import {
   AppContext,
   reducer,
   initialState,
-  ActionTypes as AT
+  ActionTypes as AT,
+  VKType,
+  ActionTypes
 } from "src/ducks";
 import VK from "src/components/VK";
 import useStyles from "./styleApp";
+import FormControl from "@material-ui/core/FormControl";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Radio from "@material-ui/core/Radio";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormLabel from "@material-ui/core/FormLabel";
+
+const Buttons = React.memo(
+  ({
+    changeVK,
+    vk
+  }: {
+    vk: VKType;
+    changeVK: (e: React.ChangeEvent<{}>) => void;
+  }) => (
+    <FormControl component="fieldset">
+      <FormLabel component="legend">Fundamental Diagram</FormLabel>
+      <RadioGroup
+        aria-label="Fundamental Diagram"
+        name="fd"
+        value={vk}
+        onChange={changeVK}
+      >
+        <FormControlLabel
+          value={VKType.TRIANGLE}
+          control={<Radio />}
+          label="Triangle"
+        />
+        <FormControlLabel
+          value={VKType.GREENSHIELDS}
+          control={<Radio />}
+          label="Greenshields"
+        />
+        <FormControlLabel
+          value={VKType.DRAKE}
+          control={<Radio />}
+          label="Drake"
+        />
+      </RadioGroup>
+    </FormControl>
+  )
+);
 
 const EMPTY = {},
   WIDTH = 600,
@@ -25,6 +73,13 @@ const App: FunctionComponent<{}> = () => {
     dispatch({ type: AT.TICK, payload: Math.min(dt, 0.05) });
   }, play);
 
+  const changeVK: React.ChangeEventHandler<any> = useCallback(
+    (e: { target: { value: VKType } }) => {
+      dispatch({ type: ActionTypes.SET_VK, payload: e.target.value });
+    },
+    []
+  );
+
   return (
     <div className={classes.main}>
       <Paper className={classes.paper} elevation={2}>
@@ -37,6 +92,7 @@ const App: FunctionComponent<{}> = () => {
         >
           {play ? "PAUSE" : "PLAY"}
         </Button>
+        <Buttons changeVK={changeVK}  vk={state.vk}/>
       </Paper>
       <VK height={HEIGHT} width={WIDTH} />
     </div>

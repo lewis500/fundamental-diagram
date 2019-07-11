@@ -10,4 +10,4 @@ export const k0 = kj / 3;
 export const q0 = vf * k0;
 export const w = q0 / (kj - k0);
 export const delta = 0.5;
-export const numLanes = 20;
+export const numLanes = 21;

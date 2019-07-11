@@ -32,7 +32,7 @@ export const kRange: number[] = getRange(numLanes).map(
 export const vkMap: { [keys in VKType]: (k: number) => number } = {
   TRIANGLE: k => max(min(vf, w * (kj / k - 1)), 0),
   GREENSHIELDS: k => max(0, vf * (1 - k / kj)),
-  DRAKE: k => max(0, vf * Math.exp(-k / kj))
+  DRAKE: k => max(0, vf * Math.exp(-Math.pow(k / k0, 3) / 3))
 };
 
 const setLanes = (vk: VKType): Lane[] =>

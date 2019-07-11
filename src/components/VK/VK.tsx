@@ -6,10 +6,10 @@ import React, {
   memo
 } from "react";
 import { scaleLinear } from "d3-scale";
-import { AppContext, getRange, vkMap } from "src/ducks";
+import { AppContext, getRange, vkMap, VKType } from "src/ducks";
 import * as params from "src/constants";
-import { colors } from "@material-ui/core";
-import { makeStyles, withStyles } from "@material-ui/styles";
+import * as colors from "@material-ui/core/colors";
+import makeStyles from "@material-ui/styles/makeStyles";
 import mo from "memoize-one";
 import TexLabel from "src/components/TexLabel";
 
@@ -48,7 +48,7 @@ const KAxis = memo<{
         stroke="black"
         markerEnd="url(#arrow)"
       />
-        {children}
+      {children}
     </g>
   )),
   VAxis = memo<{ height: number; children?: React.ReactNode[] }>(
@@ -138,15 +138,22 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
             </g>
           ))}
           {VPath}
-
         </g>
         <VAxis height={height}>
-          <TexLabel dx={-20} dy={vScale(params.vf)-10} latexstring="v_f" />
+          <TexLabel dx={-20} dy={vScale(params.vf) - 10} latexstring="v_f" />
           <TexLabel dx={-10} dy={-25} latexstring="v \; \text{(km/hr)}" />
         </VAxis>
         <KAxis height={height} width={width}>
-          <TexLabel dx={kScale(params.k0)-4} dy={0} latexstring="k_0" />
-          <TexLabel dx={kScale(params.kj)-4} dy={0} latexstring="k_j" />
+          <TexLabel
+            dx={
+              kScale(
+                state.vk === VKType.GREENSHIELDS ? params.kj / 2 : params.k0
+              ) - 4
+            }
+            dy={0}
+            latexstring="k_0"
+          />
+          <TexLabel dx={kScale(params.kj) - 4} dy={0} latexstring="k_j" />
           <TexLabel
             dx={width + 10}
             dy={-10}
