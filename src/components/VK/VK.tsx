@@ -171,7 +171,7 @@ const useStyles = makeStyles<{}, { width: number; height: number }>({
     strokeWidth: "4px",
     fill: "none",
     stroke: colors.lightBlue["A700"],
-    opacity: 0.7
+    opacity: 0.8
   },
   road: {
     stroke: colors.grey["300"]
