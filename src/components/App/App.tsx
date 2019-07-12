@@ -17,6 +17,7 @@ import {
   ActionTypes
 } from "src/ducks";
 import VK from "src/components/VK";
+import QK from "src/components/QK";
 import useStyles from "./styleApp";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
@@ -95,6 +96,7 @@ const App: FunctionComponent<{}> = () => {
         <Buttons changeVK={changeVK}  vk={state.vk}/>
       </Paper>
       <VK height={HEIGHT} width={WIDTH} />
+      <QK height={HEIGHT/2} width={WIDTH} />
     </div>
   );
 };

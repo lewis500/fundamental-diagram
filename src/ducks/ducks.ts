@@ -32,20 +32,16 @@ export const kRange: number[] = getRange(numLanes).map(
 export const vkMap: { [keys in VKType]: (k: number) => number } = {
   TRIANGLE: k => max(min(vf, w * (kj / k - 1)), 0),
   GREENSHIELDS: k => max(0, vf * (1 - k / kj)),
-  DRAKE: k => max(0, vf * Math.exp(-Math.pow(k / k0, 3) / 3))
+  DRAKE: k => max(0, vf * Math.exp(-Math.pow(k / k0, 2) / 2))
 };
 
 const setLanes = (vk: VKType): Lane[] =>
-  kRange.map(k => {
-    // let r = Math.random() * params.carLength/2;
-    let r = 0;
-    return {
-      k,
-      s: 1 / k,
-      v: vkMap[vk](k),
-      cars: getRange(Math.round(total * k)).map(d => r + d / k)
-    };
-  });
+  kRange.map(k => ({
+    k,
+    s: 1 / k,
+    v: vkMap[vk](k),
+    cars: getRange(Math.round(total * k)).map(d => d / k)
+  }));
 
 export const initialState = {
   play: false,

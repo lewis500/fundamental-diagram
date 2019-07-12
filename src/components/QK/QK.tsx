@@ -36,7 +36,7 @@ const KAxis = memo<{
       {children}
     </g>
   )),
-  VAxis = memo<{ height: number; children?: React.ReactNode[] }>(
+  QAxis = memo<{ height: number; children?: React.ReactNode[] }>(
     ({ height, children }) => (
       <g>
         <path
@@ -51,83 +51,51 @@ const KAxis = memo<{
     )
   );
 
-const memoizedvalues = mo((width, height, classes) => {
-  const vScale = scaleLinear()
+const memoizedvalues = mo((width, height) => {
+  const qScale = scaleLinear()
       .range([height, 0])
-      .domain([0, params.vf * 1.2]),
-    xScale = scaleLinear()
-      .range([height, 0])
-      .domain([0, params.total - params.carLength]),
+      .domain([0, params.q0 * 1.2]),
     kScale = scaleLinear()
       .range([0, width])
       .domain([0, params.kj + 0.008]),
-    carLength = height - xScale(params.carLength),
-    carWidth = height - xScale(params.carWidth),
     Mask = (
       <mask id="myMask">
         <rect width={width} height={height} fill="white" />
       </mask>
-    ),
-    Road = CE("path", {
-      className: classes.road,
-      strokeWidth: height - xScale(params.roadWidth),
-      d: `M0,0L0,${height}`
-    });
-  return { vScale, xScale, kScale, carLength, carWidth, Mask, Road };
+    );
+  return { qScale, kScale, Mask };
 });
 
-const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
+const QK: FC<{ width: number; height: number }> = ({ width, height }) => {
   const { state } = useContext(AppContext),
     vk = vkMap[state.vk],
     classes = useStyles({
       width: width + M.right + M.left,
       height: height + M.top + M.bottom
     }),
-    {
-      vScale,
-      xScale,
-      kScale,
-      carLength,
-      carWidth,
-      Mask,
-      Road
-    } = memoizedvalues(width, height, classes),
-    VPath = useMemo(
+    { qScale, kScale, Mask } = memoizedvalues(width, height),
+    QPath = useMemo(
       () =>
         CE("path", {
           className: classes.path,
           d: getRange(70)
             .map((v, i, k) => (v / (k.length - 1)) * params.kj)
-            .reduce((a, k) => a + kScale(k) + "," + vScale(vk(k)) + " ", "M")
+            .reduce(
+              (a, k) => a + kScale(k) + "," + qScale(k * vk(k)) + " ",
+              "M"
+            )
         }),
-      [kScale, vScale, vk]
+      [kScale, qScale, vk]
     );
   return (
     <svg className={classes.svg}>
       <g transform={gTranslate}>
         {Mask}
-        <g mask="url(#myMask)">
-          {state.lanes.map((d, i) => (
-            <g key={d.k} transform={`translate(${kScale(d.k)},0)`}>
-              {Road}
-              {d.cars.map((x, j) => (
-                <rect
-                  key={j}
-                  className={classes.car}
-                  y={xScale(x)}
-                  x={-carWidth / 2}
-                  height={carLength}
-                  width={carWidth}
-                />
-              ))}
-            </g>
-          ))}
-          {VPath}
-        </g>
-        <VAxis height={height}>
-          <TexLabel dx={-20} dy={vScale(params.vf) - 10} latexstring="v_f" />
-          <TexLabel dx={-10} dy={-25} latexstring="v \; \text{(km/hr)}" />
-        </VAxis>
+        <g mask="url(#myMask)">{QPath}</g>
+        <QAxis height={height}>
+          <TexLabel dx={-20} dy={qScale(params.q0) - 10} latexstring="q_0" />
+          <TexLabel dx={-10} dy={-25} latexstring="q \; \text{(veh/hr)}" />
+        </QAxis>
         <KAxis height={height} width={width}>
           <TexLabel
             dx={
@@ -149,7 +117,7 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
     </svg>
   );
 };
-export default VK;
+export default QK;
 
 const useStyles = makeStyles<{}, { width: number; height: number }>({
   path: {
@@ -157,15 +125,6 @@ const useStyles = makeStyles<{}, { width: number; height: number }>({
     fill: "none",
     stroke: colors.lightBlue["A700"],
     opacity: 0.8
-  },
-  road: {
-    stroke: colors.grey["300"]
-  },
-  car: {
-    fill: colors.purple["A200"],
-    rx: 1,
-    ry: 1,
-    stroke: "none"
   },
   svg: ({ width, height }) => ({
     width,
@@ -179,6 +138,5 @@ const useStyles = makeStyles<{}, { width: number; height: number }>({
   text: {
     textAlign: "center",
     fontSize: "10px"
-    // fontFamily: "Puritan, sans-serif"
   }
 });

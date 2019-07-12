@@ -1,5 +1,6 @@
 // import { makeStyles } from "@material-ui/styles";
-import { makeStyles, colors } from "@material-ui/core";
+import * as colors from "@material-ui/core/colors";
+import makeStyles from "@material-ui/styles/makeStyles";
 
 export default makeStyles({
   "@global": {
@@ -26,12 +27,12 @@ export default makeStyles({
     margin: "auto",
     display: "flex",
     // padding: "24px 36px",
-    padding: '20px',
+    padding: "20px",
     flexDirection: "row",
     alignItems: "center"
   },
   button: {
-    margin: '5px'
+    margin: "5px"
   },
   // button: {
   //   alignSelf: "center"
