@@ -6,6 +6,7 @@ import React, {
 } from "react";
 import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
+import Box from "@material-ui/core/Box";
 import { useTimer } from "src/useTimerHook";
 import * as params from "src/constants";
 import {
@@ -33,31 +34,31 @@ const Buttons = React.memo(
     vk: VKType;
     changeVK: (e: React.ChangeEvent<{}>) => void;
   }) => (
-    <FormControl component="fieldset">
-      <FormLabel component="legend">Fundamental Diagram</FormLabel>
-      <RadioGroup
-        aria-label="Fundamental Diagram"
-        name="fd"
-        value={vk}
-        onChange={changeVK}
-      >
-        <FormControlLabel
-          value={VKType.TRIANGLE}
-          control={<Radio />}
-          label="Triangle"
-        />
-        <FormControlLabel
-          value={VKType.GREENSHIELDS}
-          control={<Radio />}
-          label="Greenshields"
-        />
-        <FormControlLabel
-          value={VKType.DRAKE}
-          control={<Radio />}
-          label="Drake"
-        />
-      </RadioGroup>
-    </FormControl>
+    // <FormControl component="fieldset">
+    //   <FormLabel component="legend">Fundamental Diagram</FormLabel>
+    <RadioGroup
+      row={true}
+      aria-label="Fundamental Diagram"
+      name="fd"
+      value={vk}
+      onChange={changeVK}
+    >
+      <FormControlLabel
+        value={VKType.TRIANGLE}
+        control={<Radio />}
+        label="Triangle"
+      />
+      <FormControlLabel
+        value={VKType.GREENSHIELDS}
+        control={<Radio />}
+        label="Greenshields"
+      />
+      <FormControlLabel
+        value={VKType.DRAKE}
+        control={<Radio />}
+        label="Drake"
+      />
+    </RadioGroup>
   )
 );
 
@@ -93,10 +94,10 @@ const App: FunctionComponent<{}> = () => {
         >
           {play ? "PAUSE" : "PLAY"}
         </Button>
-        <Buttons changeVK={changeVK}  vk={state.vk}/>
+        <Buttons changeVK={changeVK} vk={state.vk} />
       </Paper>
       <VK height={HEIGHT} width={WIDTH} />
-      <QK height={HEIGHT/2} width={WIDTH} />
+      <QK height={HEIGHT / 2} width={WIDTH} />
     </div>
   );
 };

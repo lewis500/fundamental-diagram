@@ -3,7 +3,8 @@ import React, {
   useContext,
   useMemo,
   FC,
-  memo
+  memo,
+  useRef
 } from "react";
 import { scaleLinear } from "d3-scale";
 import { AppContext, getRange, vkMap, VKType } from "src/ducks";
@@ -12,6 +13,7 @@ import * as colors from "@material-ui/core/colors";
 import makeStyles from "@material-ui/styles/makeStyles";
 import mo from "memoize-one";
 import TexLabel from "src/components/TexLabel";
+import useElementSize from "src/useElementSizeHook";
 
 const M = {
     top: 25,
@@ -65,14 +67,18 @@ const memoizedvalues = mo((width, height) => {
     );
   return { qScale, kScale, Mask };
 });
-
-const QK: FC<{ width: number; height: number }> = ({ width, height }) => {
+function marginer({ width, height }: { width: number; height: number }) {
+  return {
+    width: Math.max(width - M.left - M.right, 0),
+    height: Math.max(height - M.top - M.bottom, 0)
+  };
+}
+const QK: FC<{}> = () => {
   const { state } = useContext(AppContext),
+    svgRef = useRef<HTMLDivElement>(),
+    { width, height } = useElementSize(svgRef, marginer),
     vk = vkMap[state.vk],
-    classes = useStyles({
-      width: width + M.right + M.left,
-      height: height + M.top + M.bottom
-    }),
+    classes = useStyles({}),
     { qScale, kScale, Mask } = memoizedvalues(width, height),
     QPath = useMemo(
       () =>
@@ -88,53 +94,60 @@ const QK: FC<{ width: number; height: number }> = ({ width, height }) => {
       [kScale, qScale, vk]
     );
   return (
-    <svg className={classes.svg}>
-      <g transform={gTranslate}>
-        {Mask}
-        <g mask="url(#myMask)">{QPath}</g>
-        <QAxis height={height}>
-          <TexLabel dx={-20} dy={qScale(params.q0) - 10} latexstring="q_0" />
-          <TexLabel dx={-10} dy={-25} latexstring="q \; \text{(veh/hr)}" />
-        </QAxis>
-        <KAxis height={height} width={width}>
-          <TexLabel
-            dx={
-              kScale(
-                state.vk === VKType.GREENSHIELDS ? params.kj / 2 : params.k0
-              ) - 4
-            }
-            dy={0}
-            latexstring="k_0"
-          />
-          <TexLabel dx={kScale(params.kj) - 4} dy={0} latexstring="k_j" />
-          <TexLabel
-            dx={width + 10}
-            dy={-10}
-            latexstring="k \; \text{(veh/km)}"
-          />
-        </KAxis>
-      </g>
-    </svg>
+    <div ref={svgRef} className={classes.container}>
+      <svg className={classes.svg}>
+        <g transform={gTranslate}>
+          {Mask}
+          <g mask="url(#myMask)">{QPath}</g>
+          <QAxis height={height}>
+            <TexLabel dx={-20} dy={qScale(params.q0) - 10} latexstring="q_0" />
+            <TexLabel dx={-10} dy={-25} latexstring="q \; \text{(veh/hr)}" />
+          </QAxis>
+          <KAxis height={height} width={width}>
+            <TexLabel
+              dx={
+                kScale(
+                  state.vk === VKType.GREENSHIELDS ? params.kj / 2 : params.k0
+                ) - 4
+              }
+              dy={0}
+              latexstring="k_0"
+            />
+            <TexLabel dx={kScale(params.kj) - 4} dy={0} latexstring="k_j" />
+            <TexLabel
+              dx={width + 10}
+              dy={-10}
+              latexstring="k \; \text{(veh/km)}"
+            />
+          </KAxis>
+        </g>
+      </svg>
+    </div>
   );
 };
 export default QK;
 
-const useStyles = makeStyles<{}, { width: number; height: number }>({
+const useStyles = makeStyles({
   path: {
     strokeWidth: "4px",
     fill: "none",
     stroke: colors.lightBlue["A700"],
     opacity: 0.8
   },
-  svg: ({ width, height }) => ({
-    width,
-    height,
+  container: {
+    position: "relative",
+    width: "500px",
+    height: "300px"
+  },
+  svg: {
     display: "block",
+    width: "100%",
+    height: "100%",
     "& text": {
       fontFamily: "Puritan, san-serif",
       fontSize: "11px"
     }
-  }),
+  },
   text: {
     textAlign: "center",
     fontSize: "10px"
