@@ -23,10 +23,8 @@ export default makeStyles({
   },
   paper: {
     maxWidth: "500px",
-    // width: 300,
     margin: "auto",
     display: "flex",
-    // padding: "24px 36px",
     padding: "20px",
     flexDirection: "row",
     alignItems: "center"

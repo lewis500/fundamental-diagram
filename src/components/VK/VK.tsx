@@ -21,36 +21,6 @@ const M = {
   },
   gTranslate = `translate(${M.left},${M.top})`;
 
-const KAxis = memo<{
-    height: number;
-    width: number;
-    children?: React.ReactNode[];
-  }>(({ height, width, children }) => (
-    <g transform={`translate(0,${height})`}>
-      <path
-        d={`M0,0L${width},0`}
-        fill="none"
-        stroke="black"
-        markerEnd="url(#arrow)"
-      />
-      {children}
-    </g>
-  )),
-  VAxis = memo<{ height: number; children?: React.ReactNode[] }>(
-    ({ height, children }) => (
-      <g>
-        <path
-          d={`M0,0L0,${height}`}
-          fill="none"
-          stroke="black"
-          markerEnd="url(#arrow)"
-          markerStart="url(#arrow)"
-        />
-        {children}
-      </g>
-    )
-  );
-
 const memoizedvalues = mo((width, height, classes) => {
   const vScale = scaleLinear()
       .range([height, 0])
@@ -63,17 +33,12 @@ const memoizedvalues = mo((width, height, classes) => {
       .domain([0, params.kj + 0.008]),
     carLength = height - xScale(params.carLength),
     carWidth = height - xScale(params.carWidth),
-    Mask = (
-      <mask id="myMask">
-        <rect width={width} height={height} fill="white" />
-      </mask>
-    ),
     Road = CE("path", {
       className: classes.road,
       strokeWidth: height - xScale(params.roadWidth),
       d: `M0,0L0,${height}`
     });
-  return { vScale, xScale, kScale, carLength, carWidth, Mask, Road };
+  return { vScale, xScale, kScale, carLength, carWidth, Road };
 });
 
 const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
@@ -83,15 +48,11 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
       width: width + M.right + M.left,
       height: height + M.top + M.bottom
     }),
-    {
-      vScale,
-      xScale,
-      kScale,
-      carLength,
-      carWidth,
-      Mask,
-      Road
-    } = memoizedvalues(width, height, classes),
+    { vScale, xScale, kScale, carLength, carWidth, Road } = memoizedvalues(
+      width,
+      height,
+      classes
+    ),
     VPath = useMemo(
       () =>
         CE("path", {
@@ -105,7 +66,9 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
   return (
     <svg className={classes.svg}>
       <g transform={gTranslate}>
-        {Mask}
+        <mask id="myMask">
+          <rect width={width} height={height} fill="white" />
+        </mask>
         <g mask="url(#myMask)">
           {state.lanes.map((d, i) => (
             <g key={d.k} transform={`translate(${kScale(d.k)},0)`}>
@@ -124,11 +87,26 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
           ))}
           {VPath}
         </g>
-        <VAxis height={height}>
+
+        <g id="vaxis">
+          <path
+            d={`M0,0L0,${height}`}
+            fill="none"
+            stroke="black"
+            markerEnd="url(#arrow)"
+            markerStart="url(#arrow)"
+          />
           <TexLabel dx={-20} dy={vScale(params.vf) - 10} latexstring="v_f" />
           <TexLabel dx={-10} dy={-25} latexstring="v \; \text{(km/hr)}" />
-        </VAxis>
-        <KAxis height={height} width={width}>
+        </g>
+
+        <g transform={`translate(0,${height})`} id="kaxis">
+          <path
+            d={`M0,0L${width},0`}
+            fill="none"
+            stroke="black"
+            markerEnd="url(#arrow)"
+          />
           <TexLabel
             dx={
               kScale(
@@ -144,7 +122,7 @@ const VK: FC<{ width: number; height: number }> = ({ width, height }) => {
             dy={-10}
             latexstring="k \; \text{(veh/km)}"
           />
-        </KAxis>
+        </g>
       </g>
     </svg>
   );

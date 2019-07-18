@@ -54,51 +54,45 @@ const KAxis = memo<{
   );
 
 const memoizedvalues = mo((width, height) => {
+  console.log(width);
   const qScale = scaleLinear()
       .range([height, 0])
       .domain([0, params.q0 * 1.2]),
     kScale = scaleLinear()
       .range([0, width])
-      .domain([0, params.kj + 0.008]),
-    Mask = (
-      <mask id="myMask">
-        <rect width={width} height={height} fill="white" />
-      </mask>
-    );
-  return { qScale, kScale, Mask };
+      .domain([0, params.kj + 0.008]);
+  return { qScale, kScale };
 });
+
 function marginer({ width, height }: { width: number; height: number }) {
   return {
     width: Math.max(width - M.left - M.right, 0),
     height: Math.max(height - M.top - M.bottom, 0)
   };
 }
+const EMPTY = {};
 const QK: FC<{}> = () => {
   const { state } = useContext(AppContext),
     svgRef = useRef<HTMLDivElement>(),
     { width, height } = useElementSize(svgRef, marginer),
     vk = vkMap[state.vk],
-    classes = useStyles({}),
-    { qScale, kScale, Mask } = memoizedvalues(width, height),
+    classes = useStyles(EMPTY),
+    { qScale, kScale } = memoizedvalues(width, height),
     QPath = useMemo(
       () =>
-        CE("path", {
-          className: classes.path,
-          d: getRange(70)
-            .map((v, i, k) => (v / (k.length - 1)) * params.kj)
-            .reduce(
-              (a, k) => a + kScale(k) + "," + qScale(k * vk(k)) + " ",
-              "M"
-            )
-        }),
+        getRange(70)
+          .map((v, i, k) => (v / (k.length - 1)) * params.kj)
+          .reduce((a, k) => a + kScale(k) + "," + qScale(k * vk(k)) + " ", "M"),
       [kScale, qScale, vk]
     );
   return (
     <div ref={svgRef} className={classes.container}>
       <svg className={classes.svg}>
         <g transform={gTranslate}>
-          {Mask}
-          <g mask="url(#myMask)">{QPath}</g>
+          <mask id="myMask2">
+            <rect width={width} height={height} fill="white" />
+          </mask>
+          <path mask="url(#myMask2)" className={classes.path} d={QPath} />
           <QAxis height={height}>
             <TexLabel dx={-20} dy={qScale(params.q0) - 10} latexstring="q_0" />
             <TexLabel dx={-10} dy={-25} latexstring="q \; \text{(veh/hr)}" />
@@ -136,11 +130,10 @@ const useStyles = makeStyles({
   },
   container: {
     position: "relative",
-    width: "500px",
+    width: "100%",
     height: "300px"
   },
   svg: {
-    display: "block",
     width: "100%",
     height: "100%",
     "& text": {

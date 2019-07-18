@@ -2,7 +2,8 @@ import React, {
   FunctionComponent,
   useContext,
   useReducer,
-  useCallback
+  useCallback,
+  FormEvent
 } from "react";
 import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
@@ -32,10 +33,8 @@ const Buttons = React.memo(
     vk
   }: {
     vk: VKType;
-    changeVK: (e: React.ChangeEvent<{}>) => void;
+    changeVK: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }) => (
-    // <FormControl component="fieldset">
-    //   <FormLabel component="legend">Fundamental Diagram</FormLabel>
     <RadioGroup
       row={true}
       aria-label="Fundamental Diagram"
@@ -75,12 +74,12 @@ const App: FunctionComponent<{}> = () => {
     dispatch({ type: AT.TICK, payload: Math.min(dt, 0.05) });
   }, play);
 
-  const changeVK: React.ChangeEventHandler<any> = useCallback(
-    (e: { target: { value: VKType } }) => {
-      dispatch({ type: ActionTypes.SET_VK, payload: e.target.value });
-    },
-    []
-  );
+  const changeVK = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // if (!VKType.hasOwnProperty(e.currentTarget.value))
+    //   throw Error("wrong input event");
+    let payload = e.currentTarget.value as VKType;
+    dispatch({ type: ActionTypes.SET_VK, payload });
+  }, []);
 
   return (
     <div className={classes.main}>
@@ -97,7 +96,7 @@ const App: FunctionComponent<{}> = () => {
         <Buttons changeVK={changeVK} vk={state.vk} />
       </Paper>
       <VK height={HEIGHT} width={WIDTH} />
-      <QK height={HEIGHT / 2} width={WIDTH} />
+      <QK />
     </div>
   );
 };

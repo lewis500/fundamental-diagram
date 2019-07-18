@@ -55,7 +55,7 @@ export enum ActionTypes {
   SET_PLAY = "SET_PLAY"
 }
 
-type Action =
+type Action = (
   | {
       type: ActionTypes.TICK;
       payload: number;
@@ -67,12 +67,9 @@ type Action =
   | {
       type: ActionTypes.SET_PLAY;
       payload: boolean;
-    };
+    }); 
 
-export const reducer: React.Reducer<State, Action> = (
-  state,
-  action: { type: ActionTypes; payload?: any }
-) => {
+export const reducer: React.Reducer<State, Action> = (state, action) => {
   switch (action.type) {
     case ActionTypes.TICK:
       let δ = action.payload;
